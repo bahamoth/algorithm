@@ -37,16 +37,30 @@ public class BFS {
 
     int solve() {
        int ret = 0;
+       int distance = 0;
+
+       Queue<Point> searchQueue = new Queue<>();
+       Queue<Point> visitedQueue = new Queue<>();
+
+
 
 
        return ret;
     }
 
+    int visit(Point current, Point destination, Queue<Point> vQueue, int distance) {
+        int ret = 0;
+
+        return ret;
+    }
+
+
+
     public static void main(String... args) {
         BFS sol = new BFS();
         sol.setUp(true);
 
-        Queue<Point> queue = new Queue<>(new Element<>(new Point(0,0)));
+        Queue<Point> queue = new Queue<>(new Point(0,0));
         queue.enqueue(new Point(1,1));
         queue.enqueue(new Point(2,2));
         queue.enqueue(new Point(3,3));
@@ -88,9 +102,10 @@ public class BFS {
         int count = 0;
 
         public Queue() {}
-        public Queue(Element root) {
-            first = root;
-            last = root;
+        public Queue(T root) {
+            Element<T> first = new Element(root);
+            this.first = first;
+            this.last = first;
             count = 1;
         }
 
