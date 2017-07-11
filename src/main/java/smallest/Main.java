@@ -1,3 +1,5 @@
+package smallest;
+
 import java.util.Scanner;
 
 /**
