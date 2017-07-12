@@ -13,7 +13,7 @@ public class Main {
     int h;
     int w;
     char[][] map;
-    boolean[][] visited;
+    boolean[][][] isVisited;
     Point destination;
     int shortest = 2000000000;
 
@@ -23,16 +23,19 @@ public class Main {
         h = scanner.nextInt();
         w = scanner.nextInt();
         map = new char[h][w];
-        visited = new boolean[h][w];
+        isVisited = new boolean[h][w][k+1];
         for(int i=0;i<h;++i) {
             map[i] = scanner.next().toCharArray();
         }
         for(int i=0 ; i<h ; ++i) {
             for (int j=0 ; j<w ; ++j) {
-                visited[i][j] = false;
+                for (int l=0 ; l<k+1 ; ++l) {
+                    isVisited[i][j][l] = false;
+                    if (i==0 && j==0)
+                        isVisited[i][j][l] = true;
+                }
             }
         }
-        visited[0][0] = true;
         destination = new Point(w-1, h-1);
     }
 
@@ -44,30 +47,33 @@ public class Main {
             h = 4;
             w = 4;
             map = new char[h][w];
-            visited = new boolean[h][w];
+            isVisited = new boolean[h][w][k+1];
             map[0] = "0000".toCharArray();
             map[1] = "1000".toCharArray();
             map[2] = "0010".toCharArray();
             map[3] = "0100".toCharArray();
             for(int i=0 ; i<h ; ++i) {
                 for (int j=0 ; j<w ; ++j) {
-                    visited[i][j] = false;
+                    for (int l=0 ; l<k+1 ; ++l) {
+                        isVisited[i][j][l] = false;
+                        if (i==0 && j==0)
+                            isVisited[i][j][l] = true;
+                    }
                 }
             }
-            visited[0][0] = true;
             destination = new Point(w-1, h-1);
         }
     }
 
     int solve() {
-        int horseMove = k;
+        int horseMove = 0;
         int distance = 0;
         Queue<Point> searchQueue = new Queue<>();
-        if (horseMove > 0) {
-            --horseMove;
-            pickHorsePoints(new Point(0,0), searchQueue);
+        if (horseMove < k) {
+            ++horseMove;
+            pickHorsePoints(new Point(0,0), searchQueue, horseMove);
         }
-        pickPoints(new Point(0,0), searchQueue);
+        pickPoints(new Point(0,0), searchQueue, horseMove);
 
         return search(searchQueue, horseMove, distance);
     }
@@ -96,26 +102,30 @@ public class Main {
         return ret;
     }
 
-    void pickPoints(Point position, Queue sQueue) {
+    void pickPoints(Point position, Queue sQueue, int horseMove) {
         Point[] points = points(position);
 
         for (int i=0 ; i<4 ; ++i) {
             if (points[i].x>=0 && points[i].x<w && points[i].y>=0 && points[i].y<h &&
-                    visited[points[i].y][points[i].x] == false &&
+                    isVisited[points[i].y][points[i].x][horseMove] == false &&
+                    map[points[i].y][points[i].x] == '0' &&
                     !sQueue.find(new Point(points[i].x, points[i].y)))
                 sQueue.enqueue(new Point(points[i].x, points[i].y));
         }
+        System.out.println("pick points: "+sQueue);
     }
 
-    void pickHorsePoints(Point position, Queue sQueue) {
+    void pickHorsePoints(Point position, Queue sQueue, int horseMove) {
         Point[] hp = horsePoints(position);
 
         for (int i=0 ; i<8 ; ++i) {
             if (hp[i].x>=0 && hp[i].x<w && hp[i].y>=0 && hp[i].y<h &&
-                    visited[hp[i].y][hp[i].x] == false &&
+                    isVisited[hp[i].y][hp[i].x][horseMove] == false &&
+                    map[hp[i].y][hp[i].x] == '0' &&
                     !sQueue.find(new Point(hp[i].x, hp[i].y)))
                 sQueue.enqueue(new Point(hp[i].x, hp[i].y));
         }
+        System.out.println("pick horse points: "+sQueue);
     }
 
     int search(Queue<Point> sQueue, int horseMove, int distance) {
@@ -123,14 +133,23 @@ public class Main {
             return shortest;
 
         Queue<Point> newSQueue = new Queue<>();
-        if (horseMove > 0) {
-            --horseMove;
-            pickHorsePoints(new Point(0,0), newSQueue);
+        for (Point iter=sQueue.dequeue() ; iter!=null ; iter=sQueue.dequeue()) {
+            ++distance;
+            System.out.println("isVisited: "+iter+", distance: "+distance);
+            isVisited[iter.y][iter.x][horseMove] = true;
+            if (iter.x==w-1 && iter.y==h-1) {
+                shortest = distance < shortest ? distance : shortest;
+                return shortest;
+            }
+
+            if (horseMove < k) {
+                ++horseMove;
+                pickHorsePoints(new Point(0,0), newSQueue, horseMove);
+            }
+            pickPoints(new Point(0,0), newSQueue, horseMove);
         }
-        pickPoints(new Point(0,0), newSQueue);
 
-
-        return search(newSQueue, horseMove, distance+1);
+        return search(newSQueue, horseMove, distance);
     }
 
     public static void main(String... args) {
@@ -215,11 +234,9 @@ public class Main {
         @Override
         public String toString() {
             String ret = "";
-            for (Element iter=last ; iter!=first ; iter=iter.next) {
+            for (Element iter=last ; iter!=null ; iter=iter.next) {
                 ret += iter.value.toString();
             }
-            if (first!=null)
-                ret += first.value.toString();
             return ret;
         }
     }
