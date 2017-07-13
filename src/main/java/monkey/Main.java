@@ -2,12 +2,6 @@ package monkey;
 
 import java.util.Scanner;
 
-/**
- * descriptions
- *
- * @author baham
- * @since 1.0.0
- */
 public class Main {
     int k;
     int h;
@@ -15,17 +9,17 @@ public class Main {
     char[][] map;
     boolean[][][] isVisited;
     Point destination;
-    int shortest = 2000000000;
 
     void setUp() {
         Scanner scanner = new Scanner(System.in);
         k = scanner.nextInt();
-        h = scanner.nextInt();
         w = scanner.nextInt();
+        h = scanner.nextInt();
         map = new char[h][w];
         isVisited = new boolean[h][w][k+1];
         for(int i=0;i<h;++i) {
-            map[i] = scanner.next().toCharArray();
+            for(int j=0;j<w;++j)
+                map[i][j] = scanner.nextInt()==1 ? '1' : '0';
         }
         for(int i=0 ; i<h ; ++i) {
             for (int j=0 ; j<w ; ++j) {
@@ -43,15 +37,27 @@ public class Main {
         if (isTest==false)
             setUp();
         else {
-            k = 1;
-            h = 4;
-            w = 4;
+            k = 6;
+            h = 10;
+            w = 10;
             map = new char[h][w];
             isVisited = new boolean[h][w][k+1];
-            map[0] = "0000".toCharArray();
-            map[1] = "1000".toCharArray();
-            map[2] = "0010".toCharArray();
-            map[3] = "0100".toCharArray();
+            map[0] = "0111".toCharArray();
+            map[1] = "0011".toCharArray();
+            map[2] = "1011".toCharArray();
+            map[3] = "1110".toCharArray();
+
+            map[0] = "0000000000".toCharArray();
+            map[1] = "0111111110".toCharArray();
+            map[2] = "0011111110".toCharArray();
+            map[3] = "0111111110".toCharArray();
+            map[4] = "0101111110".toCharArray();
+            map[5] = "0111111110".toCharArray();
+            map[6] = "0110111110".toCharArray();
+            map[7] = "0111110110".toCharArray();
+            map[8] = "0111011100".toCharArray();
+            map[9] = "0000000010".toCharArray();
+
             for(int i=0 ; i<h ; ++i) {
                 for (int j=0 ; j<w ; ++j) {
                     for (int l=0 ; l<k+1 ; ++l) {
@@ -65,118 +71,135 @@ public class Main {
         }
     }
 
+    //진입점
     int solve() {
         int horseMove = 0;
         int distance = 0;
         Queue<Point> searchQueue = new Queue<>();
         if (horseMove < k) {
-            ++horseMove;
-            pickHorsePoints(new Point(0,0), searchQueue, horseMove);
+            pickHorsePoints(new Point(0,0, horseMove+1), searchQueue);
         }
-        pickPoints(new Point(0,0), searchQueue, horseMove);
+        pickPoints(new Point(0,0), searchQueue);
 
-        return search(searchQueue, horseMove, distance);
+        return search(searchQueue, distance);
     }
 
+    //원숭이가 움직일 수 있는 4지점
     Point[] points(Point position) {
         Point[] ret = {
-                new Point(position.x-1, position.y),
-                new Point(position.x+1, position.y),
-                new Point(position.x, position.y-1),
-                new Point(position.x, position.y+1)
+                new Point(position.x-1, position.y, position.horseMove),
+                new Point(position.x+1, position.y, position.horseMove),
+                new Point(position.x, position.y-1, position.horseMove),
+                new Point(position.x, position.y+1, position.horseMove)
         };
         return ret;
     }
 
+    //말처럼 움직일 수 있는 8지점
     Point[] horsePoints(Point position) {
         Point[] ret = {
-                new Point(position.x-1, position.y-2),
-                new Point(position.x-1, position.y+2),
-                new Point(position.x+1, position.y-2),
-                new Point(position.x+1, position.y+2),
-                new Point(position.x-2, position.y-1),
-                new Point(position.x-2, position.y+1),
-                new Point(position.x+2, position.y-1),
-                new Point(position.x+2, position.y+1)
+                new Point(position.x-1, position.y-2, position.horseMove),
+                new Point(position.x-1, position.y+2, position.horseMove),
+                new Point(position.x+1, position.y-2, position.horseMove),
+                new Point(position.x+1, position.y+2, position.horseMove),
+                new Point(position.x-2, position.y-1, position.horseMove),
+                new Point(position.x-2, position.y+1, position.horseMove),
+                new Point(position.x+2, position.y-1, position.horseMove),
+                new Point(position.x+2, position.y+1, position.horseMove)
         };
         return ret;
     }
 
-    void pickPoints(Point position, Queue sQueue, int horseMove) {
+    //입력받은 position에서 원숭이처럼 움직일 수 있는 경로를 입력받은 queue에 적재
+    void pickPoints(Point position, Queue sQueue) {
         Point[] points = points(position);
 
         for (int i=0 ; i<4 ; ++i) {
             if (points[i].x>=0 && points[i].x<w && points[i].y>=0 && points[i].y<h &&
-                    isVisited[points[i].y][points[i].x][horseMove] == false &&
-                    map[points[i].y][points[i].x] == '0' &&
-                    !sQueue.find(new Point(points[i].x, points[i].y)))
-                sQueue.enqueue(new Point(points[i].x, points[i].y));
+                    isVisited[points[i].y][points[i].x][points[i].horseMove] == false &&
+                    map[points[i].y][points[i].x] == '0' /*&& !sQueue.find(points[i])*/) {
+                sQueue.enqueue(points[i]);
+                isVisited[points[i].y][points[i].x][points[i].horseMove] = true;
+            }
         }
-        System.out.println("pick points: "+sQueue);
     }
 
-    void pickHorsePoints(Point position, Queue sQueue, int horseMove) {
+    //입력받은 position에서 말처럼 움직일 수 있는 경로를 입력받은 queue에 적재
+    void pickHorsePoints(Point position, Queue sQueue) {
         Point[] hp = horsePoints(position);
 
         for (int i=0 ; i<8 ; ++i) {
             if (hp[i].x>=0 && hp[i].x<w && hp[i].y>=0 && hp[i].y<h &&
-                    isVisited[hp[i].y][hp[i].x][horseMove] == false &&
-                    map[hp[i].y][hp[i].x] == '0' &&
-                    !sQueue.find(new Point(hp[i].x, hp[i].y)))
-                sQueue.enqueue(new Point(hp[i].x, hp[i].y));
+                    isVisited[hp[i].y][hp[i].x][hp[i].horseMove] == false &&
+                    map[hp[i].y][hp[i].x] == '0' /*&& !sQueue.find(hp[i])*/) {
+                sQueue.enqueue(hp[i]);
+                isVisited[hp[i].y][hp[i].x][hp[i].horseMove] = true;
+            }
         }
-        System.out.println("pick horse points: "+sQueue);
     }
 
-    int search(Queue<Point> sQueue, int horseMove, int distance) {
-        if (sQueue.count==0)
-            return shortest;
-
-        Queue<Point> newSQueue = new Queue<>();
-        for (Point iter=sQueue.dequeue() ; iter!=null ; iter=sQueue.dequeue()) {
-            ++distance;
-            System.out.println("isVisited: "+iter+", distance: "+distance);
-            isVisited[iter.y][iter.x][horseMove] = true;
-            if (iter.x==w-1 && iter.y==h-1) {
-                shortest = distance < shortest ? distance : shortest;
-                return shortest;
-            }
-
-            if (horseMove < k) {
-                ++horseMove;
-                pickHorsePoints(new Point(0,0), newSQueue, horseMove);
-            }
-            pickPoints(new Point(0,0), newSQueue, horseMove);
+    int search(Queue<Point> sQueue, int distance) {
+        //System.out.println("current sQueue: "+sQueue.toString());
+        //더 이상 경로를 찾을 수 없으면 -1 리턴
+        if (sQueue.count==0) {
+            //System.out.println("cannot find path");
+            return -1;
         }
 
-        return search(newSQueue, horseMove, distance);
+        ++distance;
+        Queue<Point> newSQueue = new Queue<>();
+        //기존 queue 에 적재된 node 들을 순회하며 다음 steop의 경로를 찾기 위한 신규 queue 생성
+        for (Point iter=sQueue.dequeue() ; iter!=null ; iter=sQueue.dequeue()) {
+            //System.out.println("current: "+iter+", distance: "+distance);
+            isVisited[iter.y][iter.x][iter.horseMove] = true;
+            if (destination.isSamePoint(iter)) {
+                //System.out.println("found path, distance: "+distance);
+                return distance;
+            }
+            pickPoints(new Point(iter.x,iter.y, iter.horseMove), newSQueue);
+            if (iter.horseMove < k) {
+                pickHorsePoints(new Point(iter.x,iter.y, iter.horseMove+1), newSQueue);
+            }
+        }
+
+        return search(newSQueue, distance);
     }
 
     public static void main(String... args) {
         Main sol = new Main();
-        sol.setUp(true);
-
+        sol.setUp();
         System.out.println(sol.solve());
     }
 
     static class Point {
         int x;
         int y;
+        int horseMove;
         public Point() {}
         public Point(int x, int y) {
             this.x = x;
             this.y = y;
         }
 
+        public Point(int x, int y, int horseMove) {
+            this.x = x;
+            this.y = y;
+            this.horseMove = horseMove;
+        }
+
         @Override
         public String toString() {
-            return "("+x+", "+y+")";
+            return "("+x+", "+y+")hm:"+horseMove+" ";
         }
 
         @Override
         public boolean equals(Object obj) {
             Point rhs = (Point)obj;
-            return rhs.x==x&&rhs.y==y ? true : false;
+            return rhs.x==x&&rhs.y==y&&rhs.horseMove==horseMove ? true : false;
+        }
+
+        public boolean isSamePoint(Point p) {
+            return p.x==x&&p.y==y ? true : false;
         }
     }
 
@@ -220,14 +243,12 @@ public class Main {
 
         boolean find(T value) {
             boolean ret = false;
-            for(Element iter=last ; iter!=first ; iter=iter.next) {
+            for(Element iter=last ; iter!=null ; iter=iter.next) {
                 if (value.equals(iter.value)) {
                     ret = true;
                     break;
                 }
             }
-            if (first!=null && value.equals(first.value))
-                ret = true;
             return ret;
         }
 
@@ -241,3 +262,4 @@ public class Main {
         }
     }
 }
+
