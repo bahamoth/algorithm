@@ -46,10 +46,12 @@ public class Main {
                 }
                 //System.out.println();
             }
-//            maze[0] = new char[]{'1', '1', '0', '1', '1', '0'};
-//            maze[1] = new char[]{'1', '1', '0', '1', '1', '0'};
-//            maze[2] = new char[]{'1', '1', '1', '1', '0', '0'};
-//            maze[3] = new char[]{'1', '1', '1', '1', '0', '1'};
+            n = 4;
+            m = 4;
+            maze[0] = new char[]{'1', '1', '0', '1', '1', '0'};
+            maze[1] = new char[]{'1', '1', '0', '1', '1', '0'};
+            maze[2] = new char[]{'1', '1', '1', '1', '0', '0'};
+            maze[3] = new char[]{'1', '1', '1', '1', '0', '1'};
 
             visited = new boolean[n][m];
             for(int i=0 ; i<n ; ++i) {
@@ -80,7 +82,7 @@ public class Main {
         Queue<Point> newSQueue = new Queue<>();
         for (Point iter=sQueue.dequeue() ; iter!=null ; iter=sQueue.dequeue()) {
             visited[iter.y][iter.x] = true;
-            //System.out.println("path: "+iter+", search queue: "+sQueue+", distance: "+distance);
+            System.out.println("path: "+iter+", search queue: "+sQueue+", distance: "+distance);
             if (iter.equals(destination)) {
                 if (shortest>distance)
                     shortest=distance;
